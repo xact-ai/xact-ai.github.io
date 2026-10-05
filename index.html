@@ -1,260 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>X-Act — Generalizable Action Transfer via Trace-Flow Motion Planner</title>
-  <meta name="description" content="X-Act transfers the action in a reference demonstration video to a new scene and a new embodiment — Human→Human, Human→Robot, Robot→Robot, without per-frame annotations.">
-  <meta property="og:title" content="X-Act: Generalizable Action Transfer via Trace-Flow Motion Planner">
-  <meta property="og:description" content="Understand the action in a demonstration, change the body, and do it again.">
-  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="style.css">
+  <title>fsyiyu</title>
+  <meta name="description" content="测试文本">
+  <meta name="theme-color" content="#fbfaf7">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/svg+xml" href="site/favicon.svg">
+  <link rel="stylesheet" href="site/home.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("fp-theme");
+        if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day";
+        if (t === "night") document.documentElement.setAttribute("data-theme", "night");
+      } catch (e) {}
+    })();
+  </script>
 </head>
 
 <body>
-  <header class="site-header">
-    <nav class="nav">
-      <a href="#teaser" class="brand"><span class="xact-logo">X-Act</span></a>
-      <div class="nav-links">
-        <a href="#teaser">Overview</a>
-        <a href="#abstract">Abstract</a>
-        <a href="#method">Method</a>
-        <a href="#results">Videos</a>
-        <a href="#quantitative">Quantitative</a>
-        <a href="#citation">Citation</a>
+  <a class="skip" href="#toc">跳到目录</a>
+
+  <header class="bar">
+    <div class="wrap bar__inner">
+      <span class="name" id="name"></span>
+      <div class="bar__right">
+        <nav class="tools" id="tools" aria-label="外部链接"></nav>
+        <button class="toggle" id="theme" type="button" aria-label="切换日读与夜读">夜读</button>
       </div>
-    </nav>
+    </div>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="container hero-inner">
-        <p class="venue">ICLR 2027 · Under Review</p>
-        <h1><span class="xact-logo">X-Act</span>: Generalizable Action Transfer via Trace–Flow Motion Planner</h1>
-        <p class="tagline">Given a reference demonstration video and a single anchor frame of a new scene, X-Act faithfully transfers the demonstrated action to a different scene and embodiment — without copying the source appearance and without dense per-frame annotations.</p>
-        <div class="actions">
-          <a class="button primary" href="#teaser">Main Video</a>
-          <a class="button" href="#method">Method</a>
-          <a class="button" href="#results">Gallery</a>
-          <a class="button" href="assets/paper.pdf" download>Paper (PDF)</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="teaser" class="section teaser-section">
-      <div class="container">
-        <div class="teaser-shell">
-          <div class="teaser-heading">
-            <div>
-              <p class="eyebrow">Main Video</p>
-              <h2>Project Overview</h2>
-            </div>
-          </div>
-          <div class="main-video-frame">
-            <video id="main-video" controls muted loop playsinline preload="metadata" poster="assets/img/main_overview_poster.jpg" data-src="assets/media/main_overview.mp4"></video>
-            <div class="stage-labels" aria-hidden="true">
-              <span class="stage-label">Reference</span>
-              <span class="stage-label">Motion Plan</span>
-              <span class="stage-label">Result</span>
-            </div>
-            <div id="main-video-loader" class="video-loader">Loading video...</div>
-          </div>
-          <p class="stage-note">The same reference demonstration (a human hand) → target-scene motion planning (dense optical flow) → robot execution result. The three panels loop in sync.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="abstract" class="section">
-      <div class="container narrow">
-        <h2>Abstract</h2>
-        <p class="lead">X-Act decomposes action transfer into action tracing, target-scene motion planning, and target video generation — all realized within a single video diffusion transformer.</p>
-        <p>
-          Action transfer must preserve action semantics — trajectory, contact timing, and object response — while discarding source appearance such as hand shape, skin, and scene texture.
-          Existing approaches either inject motion features that are entangled with the source actor, causing severe identity leakage, or rely on dense per-frame masks and trajectories that cannot adapt to a new embodiment.
-          Both paradigms skip the intermediate step of understanding the demonstrated action before planning how it should unfold in the target scene.
-        </p>
-        <p>
-          X-Act encodes the reference video as a clean Trace segment, predicts a dense optical-flow segment as a target-scene Flow motion plan during denoising, and generates the Target video from the target anchor frame under the joint guidance of Trace and Flow.
-          Three designs support this motion chain: the Trace–Flow Motion Planner turns planning into explicit flow prediction;
-          Segment-Gapped RoPE (SG-RoPE) inserts learnable positional gaps between segments;
-          and Trace-Anchored Causal Attention (TACA) enforces a unidirectional Trace → Flow → Target information flow.
-        </p>
-        <p>
-          Trained on X-Act-30K — 30,000 action-matched video pairs covering 107 manipulation categories — X-Act achieves leading results on a 200-case test bed (80 H2H / 80 R2R / 40 H2R) and in real-robot deployment, without requiring dense inference-time annotations.
-        </p>
-      </div>
-    </section>
-
-    <section id="method" class="section alt">
-      <div class="container">
-        <h2>Method</h2>
-        <div class="method-grid">
-          <article>
-            <h3>Trace–Flow Motion Planner</h3>
-            <p>Motion planning is realized as dense optical-flow prediction inside the denoising process: only Flow and Target are noised during training, with RAFT flow as supervision, making the plan an explicit and decodable intermediate stage.</p>
-          </article>
-          <article>
-            <h3>Segment-Gapped RoPE (SG-RoPE)</h3>
-            <p>The three segments share one monotonic timeline: within each segment, frames are numbered continuously, while learnable gaps between segments prevent boundaries from being read as continuous physical motion.</p>
-          </article>
-          <article>
-            <h3>Trace-Anchored Causal Attention (TACA)</h3>
-            <p>An asymmetric causal attention mask: Trace attends only to itself; Flow does not look back at Target; Target can attend to everything — action understanding, motion planning, and visual realization flow in one direction.</p>
-          </article>
-        </div>
-
-        <figure class="paper-figure">
-          <svg viewBox="0 0 1200 360" role="img" aria-label="Diagram of the Trace to Flow to Target action chain" style="display:block;width:100%;height:auto;background:#0a0e15;">
-            <defs>
-              <linearGradient id="arrowGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0" stop-color="#ff5263"/>
-                <stop offset="1" stop-color="#16d6e6"/>
-              </linearGradient>
-              <marker id="arrowHead" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
-                <path d="M0 0 L10 4 L0 8 Z" fill="#9aa8b8"/>
-              </marker>
-            </defs>
-
-            <rect x="40" y="80" width="300" height="150" rx="14" fill="rgba(255,82,99,0.10)" stroke="#ff5263" stroke-width="2"/>
-            <rect x="450" y="80" width="300" height="150" rx="14" fill="rgba(22,214,230,0.10)" stroke="#16d6e6" stroke-width="2"/>
-            <rect x="860" y="80" width="300" height="150" rx="14" fill="rgba(240,195,90,0.10)" stroke="#f0c35a" stroke-width="2"/>
-
-            <text x="190" y="128" text-anchor="middle" fill="#f3f7fb" font-size="30" font-weight="700">Trace</text>
-            <text x="190" y="170" text-anchor="middle" fill="#9aa8b8" font-size="19">Action Tracing</text>
-            <text x="190" y="202" text-anchor="middle" fill="#9aa8b8" font-size="16">clean reference latent</text>
-
-            <text x="600" y="128" text-anchor="middle" fill="#f3f7fb" font-size="30" font-weight="700">Flow</text>
-            <text x="600" y="170" text-anchor="middle" fill="#9aa8b8" font-size="19">Scene Motion Planning</text>
-            <text x="600" y="202" text-anchor="middle" fill="#9aa8b8" font-size="16">dense optical flow</text>
-
-            <text x="1010" y="128" text-anchor="middle" fill="#f3f7fb" font-size="30" font-weight="700">Target</text>
-            <text x="1010" y="170" text-anchor="middle" fill="#9aa8b8" font-size="19">Target Video Generation</text>
-            <text x="1010" y="202" text-anchor="middle" fill="#9aa8b8" font-size="16">target video</text>
-
-            <line x1="345" y1="155" x2="438" y2="155" stroke="#9aa8b8" stroke-width="2" marker-end="url(#arrowHead)"/>
-            <line x1="755" y1="155" x2="848" y2="155" stroke="#9aa8b8" stroke-width="2" marker-end="url(#arrowHead)"/>
-
-            <rect x="40" y="280" width="1120" height="50" rx="25" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)"/>
-            <text x="600" y="311" text-anchor="middle" fill="#c9d4df" font-size="19">Joint denoising in one Video Diffusion Transformer · Frozen backbone + LoRA · SG-RoPE positions segments · TACA enforces one-way flow</text>
-          </svg>
-        </figure>
-      </div>
-    </section>
-
-    <section id="results" class="section dark-results">
-      <div class="container">
-        <h2>Video Results</h2>
-        <p class="section-intro">Drag the divider to compare the input demonstration (input) with the generated output (output). Click “Flow ⇄ Output” on a card to show the motion-plan optical flow (Motion Plan) on the right. Use the arrows or the dots to switch examples.</p>
-        <div id="gallery-list"></div>
-      </div>
-    </section>
-
-    <section id="quantitative" class="section alt">
-      <div class="container">
-        <h2>Quantitative Results</h2>
-        <p class="section-intro">Numbers are taken from the paper; ↑ means higher is better; red highlights X-Act (Ours). The paper is under double-blind review, so results are not yet peer-reviewed.</p>
-
-        <div class="table-card">
-          <h3>Comparison (200-case test: 80 H2H / 80 R2R / 40 H2R)</h3>
-          <div class="table-scroll">
-            <table class="metrics-table comparison-table">
-              <thead>
-                <tr>
-                  <th>Method</th>
-                  <th>Sub. Cons. ↑</th>
-                  <th>BG. Cons. ↑</th>
-                  <th>Txt. Align. ↑</th>
-                  <th>App. Cons. ↑</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>FlexiAct</td><td>0.8973</td><td>0.9190</td><td>0.2060</td><td>0.7541</td></tr>
-                <tr><td>MotionClone</td><td>0.7318</td><td>0.8265</td><td>0.2204</td><td>0.6657</td></tr>
-                <tr><td>DynamiCrafter</td><td>0.9544</td><td>0.9382</td><td>0.1967</td><td>0.7768</td></tr>
-                <tr><td>CogVideoX</td><td>0.9055</td><td>0.9261</td><td>0.2043</td><td>0.7543</td></tr>
-                <tr><td>MotionDirector</td><td>0.9626</td><td>0.9697</td><td>0.2001</td><td>0.6250</td></tr>
-                <tr><td>Mask2IV</td><td>0.9446</td><td>0.9415</td><td>0.2176</td><td>0.7719</td></tr>
-                <tr><td>MIMIC</td><td>0.9581</td><td>0.9498</td><td>0.2142</td><td>0.7752</td></tr>
-                <tr class="ours"><td>Ours</td><td>0.9788</td><td>0.9763</td><td>0.2227</td><td>0.7798</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="table-note">User study (20 participants, 1–5) — first on all five axes: Motion Quality 3.16 · Interaction Rationality 3.21 · Semantic Similarity 3.61 · Appearance Consistency 3.28 · Temporal Coherence 3.33.</p>
-        </div>
-
-        <div class="table-card">
-          <h3>Ablation (automatic metrics)</h3>
-          <div class="table-scroll">
-            <table class="metrics-table ablation-table">
-              <thead>
-                <tr>
-                  <th>Method</th>
-                  <th>Sub. Cons. ↑</th>
-                  <th>BG. Cons. ↑</th>
-                  <th>Txt. Align. ↑</th>
-                  <th>App. Cons. ↑</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>W/o TF Motion Planner</td><td>0.9690</td><td>0.9686</td><td>0.2214</td><td>0.7781</td></tr>
-                <tr><td>W/o SG-RoPE</td><td>0.9688</td><td>0.9680</td><td>0.2208</td><td>0.7786</td></tr>
-                <tr><td>W/o TACA</td><td>0.9701</td><td>0.9692</td><td>0.2219</td><td>0.7789</td></tr>
-                <tr class="ours"><td>X-Act (Ours)</td><td>0.9788</td><td>0.9763</td><td>0.2227</td><td>0.7798</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="table-card">
-          <h3>Real-Robot (AgileX · 6 unseen tasks × 20 trials, average success)</h3>
-          <div class="table-scroll">
-            <table class="metrics-table ablation-table">
-              <thead>
-                <tr>
-                  <th>Method</th>
-                  <th>Avg. Success ↑</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>π₀.₅</td><td>33.3%</td></tr>
-                <tr><td>Qwen-VLA</td><td>28.3%</td></tr>
-                <tr><td>Fast-WAM</td><td>43.3%</td></tr>
-                <tr><td>ImageWAM</td><td>53.3%</td></tr>
-                <tr class="ours"><td>X-Act (Ours)</td><td>68.3%</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="table-note">Per-task success: Close Drawer 75% · Stack Cups 60% · Pick and Place 85% · Place Bowl Plate 70% · Slide Block 65% · Drag Cloth 55%.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="citation" class="section">
-      <div class="container narrow">
-        <h2>Citation</h2>
-        <p class="section-intro">The paper is under double-blind review at ICLR 2027; author information is anonymized. Please cite the final version once published.</p>
-        <div class="bib-wrap">
-          <button class="button copy-btn" id="copyBib" type="button">Copy BibTeX</button>
-          <pre class="bibtex"><code>@misc{xact2027,
-  title  = {Generalizable Action Transfer via
-            Trace-Flow Motion Planner for World Simulation},
-  author = {Anonymous},
-  year   = {2027},
-  note   = {Under review at ICLR 2027},
-  url    = {https://arxiv.org/abs/XXXX.XXXXX}
-}</code></pre>
-        </div>
-      </div>
-    </section>
+    <nav class="wrap toc" id="toc" aria-label="目录"></nav>
+    <section class="wrap block" id="intro" aria-label="自我介绍"></section>
+    <section class="wrap block" id="works" aria-label="作品与网站"></section>
+    <section class="wrap block" id="contact" aria-label="联系"></section>
   </main>
 
-  <footer class="footer">
-    <p>X-Act project page · Under double-blind review at ICLR 2027 (anonymous) · Content compiled from the paper draft and not peer-reviewed</p>
-  </footer>
+  <noscript>
+    <div class="wrap block">
+      <p class="sec__intro">
+        这个页面的目录与卡片需要一小段 JavaScript 才能铺开，也可以直接访问：
+        <a class="link" href="x-act/">X-Act</a> ·
+        <a class="link" href="https://fsyiyu.github.io/math-analysis-web/">工科数学分析基础（上册）自学站</a> ·
+        <a class="link" href="https://github.com/fsyiyu">GitHub</a>
+      </p>
+    </div>
+  </noscript>
 
-  <script src="videos_manifest.js"></script>
-  <script src="script.js"></script>
+  <script src="site/content.js"></script>
+  <script src="site/home.js"></script>
 </body>
 
 </html>

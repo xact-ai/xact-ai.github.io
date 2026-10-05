@@ -15,9 +15,9 @@ window.XACT_VIDEO_GALLERIES = (function () {
           id: id,
           title: "Example " + id,
           mode: "pair",
-          left: "assets/media/demo/" + cat + "/" + id + "-input.mp4",
-          right: "assets/media/demo/" + cat + "/" + id + "-output.mp4",
-          flow: "assets/media/demo/" + cat + "/" + id + "-flow.mp4",
+          left: "../assets/media/demo/" + cat + "/" + id + "-input.mp4",
+          right: "../assets/media/demo/" + cat + "/" + id + "-output.mp4",
+          flow: "../assets/media/demo/" + cat + "/" + id + "-flow.mp4",
           rightLabel: "output"
         };
       })

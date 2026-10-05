@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404</title>
+  <meta name="theme-color" content="#fbfaf7">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/svg+xml" href="/site/favicon.svg">
+  <link rel="stylesheet" href="/site/home.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("fp-theme");
+        if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day";
+        if (t === "night") document.documentElement.setAttribute("data-theme", "night");
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body class="is-ready">
+  <main>
+    <section class="wrap block" style="padding-top:88px">
+      <h2 class="h"><span class="h__num">404</span>没有这一页</h2>
+      <div class="lede"><p>这一页不存在，或者已经被移走了。</p></div>
+      <p class="sec__intro" style="margin-top:28px">
+        <a class="link" href="/">回到首页</a>
+      </p>
+    </section>
+  </main>
+</body>
+
+</html>
