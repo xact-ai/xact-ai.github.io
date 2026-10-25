@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fsyiyu</title>
+  <meta name="description" content="测试文本">
+  <meta name="theme-color" content="#fbfaf7">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/svg+xml" href="site/favicon.svg">
+  <link rel="stylesheet" href="site/home.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("fp-theme");
+        if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day";
+        if (t === "night") document.documentElement.setAttribute("data-theme", "night");
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <a class="skip" href="#toc">跳到目录</a>
+
+  <header class="bar">
+    <div class="wrap bar__inner">
+      <span class="name" id="name"></span>
+      <div class="bar__right">
+        <nav class="tools" id="tools" aria-label="外部链接"></nav>
+        <button class="toggle" id="theme" type="button" aria-label="切换日读与夜读">夜读</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <nav class="wrap toc" id="toc" aria-label="目录"></nav>
+    <section class="wrap block" id="intro" aria-label="自我介绍"></section>
+    <section class="wrap block" id="works" aria-label="作品与网站"></section>
+    <section class="wrap block" id="contact" aria-label="联系"></section>
+  </main>
+
+  <noscript>
+    <div class="wrap block">
+      <p class="sec__intro">
+        这个页面的目录与卡片需要一小段 JavaScript 才能铺开，也可以直接访问：
+        <a class="link" href="../x-act/">X-Act</a> ·
+        <a class="link" href="https://fsyiyu.github.io/math-analysis-web/">工科数学分析基础（上册）自学站</a> ·
+        <a class="link" href="https://github.com/fsyiyu">GitHub</a>
+      </p>
+    </div>
+  </noscript>
+
+  <script src="site/content.js"></script>
+  <script src="site/home.js"></script>
+</body>
+
+</html>
